@@ -16,7 +16,7 @@
  * under the License.
  *
  *
- *  Copyright (c) 2006-2010, Peng Jian, pstack@163.com. All rights reserved.
+ *  Copyright (c) 2016-2026, Peng Jian, pstack@163.com. All rights reserved.
  *
  */
 #pragma once
@@ -55,14 +55,17 @@ struct args_collection;
 class db;
 class item;
 using item_ptr = foreign_ptr<boost::intrusive_ptr<item>>;
-class sharded_redis {
+
+class redis_service {
 private:
-    distributed<db>& _peers;
-    inline unsigned get_cpu(const size_t h) {
-        return h % smp::count;
+    inline unsigned get_cpu(const sstring& key) {
+        return std::hash<sstring>()(key) % smp::count;
     }
+    distributed<db>& _db_peers;
 public:
-    sharded_redis(distributed<db>& peers) : _peers(peers) {}
+    redis_service(distributed<db>& db) : _db_peers(db) 
+    {
+    }
 
     // [TEST APIs]
     future<sstring> echo(args_collection& args);
@@ -73,8 +76,8 @@ public:
     future<uint64_t> decrby(args_collection& args);
 
     // [STRING APIs]
-    future<int> set(args_collection& args);
     future<int> mset(args_collection& args);
+    future<int> set(args_collection& args);
     future<int> del(args_collection& args);
     future<int> exists(args_collection& args);
     future<int> append(args_collection& args);
@@ -109,13 +112,34 @@ public:
     future<item_ptr> hget(args_collection& args);
     future<std::vector<item_ptr>> hgetall(args_collection& args);
     future<std::vector<item_ptr>> hmget(args_collection& args);
+
+    // [SET]
+    future<int> sadd(args_collection& args);
+    future<int> scard(args_collection& args);
+    future<int> srem(args_collection& args);
+    future<int> sismember(args_collection& args);
+    future<std::vector<item_ptr>> smembers(args_collection& args);
+    future<std::vector<item_ptr>> sdiff(args_collection& args);
+    future<std::vector<item_ptr>> sdiff_store(args_collection& args);
+    future<std::vector<item_ptr>> sinter(args_collection& args);
+    future<std::vector<item_ptr>> sinter_store(args_collection& args);
+    future<std::vector<item_ptr>> sunion(args_collection& args);
+    future<std::vector<item_ptr>> sunion_store(args_collection& args);
+    future<int> smove(args_collection& args);
 private:
+    future<int> srem_impl(sstring& key, sstring& member);
+    future<int> sadd_impl(sstring& key, sstring& member);
+    future<int> sadds_impl(sstring& key, std::vector<sstring>&& members);
+    future<std::vector<item_ptr>> sdiff_impl(std::vector<sstring>&& keys);
+    future<std::vector<item_ptr>> sinter_impl(std::vector<sstring>&& keys);
+    future<std::vector<item_ptr>> sunion_impl(std::vector<sstring>&& keys);
+    future<std::vector<item_ptr>> smembers_impl(sstring& key);
     future<item_ptr> pop_impl(args_collection& args, bool left);
     future<int> push_impl(args_collection& arg, bool force, bool left);
     future<int> push_impl(sstring& key, sstring& value, bool force, bool left);
-    future<int> set_impl(sstring& key, size_t hk, sstring& value, long expir, uint8_t flag);
-    future<item_ptr> get_impl(const sstring& key, size_t hk);
-    future<int> remove_impl(const sstring& key, size_t hash);
+    future<int> set_impl(sstring& key, sstring& value, long expir, uint8_t flag);
+    future<item_ptr> get_impl(sstring& key);
+    future<int> remove_impl(sstring& key);
     future<uint64_t> counter_by(args_collection& args, bool incr, bool with_step);
 };
 

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *
- *  Copyright (c) 2006-2010, Peng Jian, pstack@163.com. All rights reserved.
+ *  Copyright (c) 2016-2026, Peng Jian, pstack@163.com. All rights reserved.
  *
  */
 #pragma once
@@ -44,7 +44,7 @@
 #include <sstream>
 #include "base.hh"
 namespace redis {
-class sharded_redis;
+class redis_service;
 class args_collection;
 //class item;
 using item_ptr = foreign_ptr<boost::intrusive_ptr<item>>;
@@ -57,7 +57,7 @@ private:
     void regist_handler(sstring command, handler_type handler) {
         _handlers[command] = handler;
     }
-    sharded_redis* _redis;
+    redis_service* _redis;
     static std::vector<sstring> _number_str;
     static std::vector<sstring> _multi_number_str;
     static std::vector<sstring> _content_number_str;
@@ -86,18 +86,18 @@ private:
             msg.append_static(msg_batch_tag);
             if (item->type() == REDIS_RAW_UINT64 || item->type() == REDIS_RAW_INT64) {
                 std::string s = std::to_string(item->int64());
-                msg.append_static(std::to_string(s.size()).c_str());
+                msg.append(to_sstring(s.size()));
                 msg.append_static(msg_crlf);
                 msg.append_static(s.c_str());
                 msg.append_static(msg_crlf);
             } else if (item->type() == REDIS_RAW_ITEM || item->type() == REDIS_RAW_STRING) {
-                msg.append_static(std::to_string(item->value_size()).c_str());
+                msg.append(to_sstring(item->value_size()));
                 msg.append_static(msg_crlf);
                 msg.append_static(item->value());
                 msg.append_static(msg_crlf);
             } else if (item->type() == REDIS_RAW_DOUBLE) {
                 std::string s = std::to_string(item->Double());
-                msg.append_static(std::to_string(s.size()).c_str());
+                msg.append(to_sstring(s.size()));
                 msg.append_static(msg_crlf);
                 msg.append_static(s.c_str());
                 msg.append_static(msg_crlf);
@@ -173,7 +173,7 @@ private:
 public:
     redis_commands();
     ~redis_commands() {} 
-    void set_redis(sharded_redis* r) { _redis = r; }
+    void attach_redis(redis_service* r) { _redis = r; }
     handler_type& get(sstring& command) {
         auto it = _handlers.find(command);
         if (it != _handlers.end()) {

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *
- *  Copyright (c) 2006-2010, Peng Jian, pstack@163.com. All rights reserved.
+ *  Copyright (c) 2016-2026, Peng Jian, pstack@163.com. All rights reserved.
  *
  */
 #include "redis_protocol.hh"
@@ -25,7 +25,7 @@
 #include "redis_commands.hh"
 namespace redis {
 
-redis_protocol::redis_protocol(sharded_redis& redis) : _redis(redis)
+redis_protocol::redis_protocol(redis_service& redis) : _redis(redis)
 {
 }
 

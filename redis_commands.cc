@@ -16,7 +16,7 @@
  * under the License.
  *
  *
- *  Copyright (c) 2006-2010, Peng Jian, pstack@163.com. All rights reserved.
+ *  Copyright (c) 2016-2026, Peng Jian, pstack@163.com. All rights reserved.
  *
  */
 #include "redis_commands.hh"
@@ -86,14 +86,12 @@ redis_commands::redis_commands()
             return out.write(std::move(msg));
         });
     });
-
     // SET
     regist_handler(sstring("SET"), [this] (args_collection& args, output_stream<char>& out) -> future<> {
         return _redis->set(args).then([this, &out] (int r) {
             return out.write(r == 0 ? msg_ok : msg_err);
         });
     });
-
     // MSET
     regist_handler(sstring("MSET"), [this] (args_collection& args, output_stream<char>& out) -> future<> {
         return _redis->mset(args).then([this, &out] (int r) {
@@ -103,9 +101,10 @@ redis_commands::redis_commands()
 
     // GET
     regist_handler("GET", [this] (args_collection& args, output_stream<char>& out) -> future<> {
-        return _redis->get(args).then([this, &out] (item_ptr it) {
+        return _redis->get(args).then([this, &out] (auto it) {
             scattered_message<char> msg;
             this_type::append_item(msg, std::move(it));
+            //std::string a = "$6\r\nfoobar\r\n";
             return out.write(std::move(msg));
         });
     });
@@ -370,6 +369,102 @@ redis_commands::redis_commands()
         return _redis->hgetall(args).then([this, &out] (std::vector<item_ptr>&& items) {
             scattered_message<char> msg;
             this_type::append_multi_items<true, true>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SADD
+    regist_handler("SADD", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sadd(args).then([this, &out] (int count) {
+            scattered_message<char> msg;
+            this_type::append_item(msg, std::move(count));
+            return out.write(std::move(msg));
+        });
+    });
+    // SCARD
+    regist_handler("SCARD", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->scard(args).then([this, &out] (int count) {
+            scattered_message<char> msg;
+            this_type::append_item(msg, std::move(count));
+            return out.write(std::move(msg));
+        });
+    });
+    // SISMEMBER
+    regist_handler("SISMEMBER", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sismember(args).then([this, &out] (int count) {
+            scattered_message<char> msg;
+            this_type::append_item(msg, std::move(count));
+            return out.write(std::move(msg));
+        });
+    });
+    // SMEMBERS
+    regist_handler("SMEMBERS", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->smembers(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SREM
+    regist_handler("SREM", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->srem(args).then([this, &out] (int count) {
+            scattered_message<char> msg;
+            this_type::append_item(msg, std::move(count));
+            return out.write(std::move(msg));
+        });
+    });
+    // SDIFF
+    regist_handler("SDIFF", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sdiff(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SDIFFSTORE
+    regist_handler("SDIFFSTORE", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sdiff_store(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SINTER
+    regist_handler("SINTER", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sinter(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SDIFFSTORE
+    regist_handler("SINTERSTORE", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sinter_store(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SUNION
+    regist_handler("SUNION", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sunion(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SUNIONSTORE
+    regist_handler("SUNIONSTORE", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->sunion_store(args).then([this, &out] (std::vector<item_ptr>&& items) {
+            scattered_message<char> msg;
+            this_type::append_multi_items<true, false>(msg, std::move(items));
+            return out.write(std::move(msg));
+        });
+    });
+    // SMOVE 
+    regist_handler("SMOVE", [this] (args_collection& args, output_stream<char>& out) -> future<> {
+        return _redis->smove(args).then([this, &out] (int count) {
+            scattered_message<char> msg;
+            this_type::append_item(msg, std::move(count));
             return out.write(std::move(msg));
         });
     });

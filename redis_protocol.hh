@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *
- *  Copyright (c) 2006-2010, Peng Jian, pstack@163.com. All rights reserved.
+ *  Copyright (c) 2016-2026, Peng Jian, pstack@163.com. All rights reserved.
  *
  */
 #pragma once
@@ -45,15 +45,15 @@
 #include "base.hh"
 namespace redis {
 class redis_commands;
-class sharded_redis;
+class redis_service;
 using item_ptr = foreign_ptr<boost::intrusive_ptr<item>>;
 class redis_protocol {
 private:
-    sharded_redis& _redis;
+    redis_service& _redis;
     redis_protocol_parser _parser;
     args_collection _command_args;
 public:
-    redis_protocol(sharded_redis& redis);
+    redis_protocol(redis_service& redis);
     void prepare_request();
     future<> handle(input_stream<char>& in, output_stream<char>& out);
 };

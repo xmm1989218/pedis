@@ -16,7 +16,7 @@
  * under the License.
  *
  *
- *  Copyright (c) 2006-2010, Peng Jian, pstack@163.com. All rights reserved.
+ *  Copyright (c) 2016-2026, Peng Jian, pstack@163.com. All rights reserved.
  *
  */
 #include "list.hh"
@@ -32,6 +32,12 @@ struct list_node
     struct list_node* _next;
     item* _value;
     list_node() : _prev(nullptr), _next(nullptr), _value(nullptr) {}
+    ~list_node()
+    {
+        if (!_value) {
+           intrusive_ptr_release(_value);
+        }
+    }
 };
 
 struct list::rep
